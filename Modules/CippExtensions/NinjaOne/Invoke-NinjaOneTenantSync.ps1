@@ -23,7 +23,7 @@ function Invoke-NinjaOneTenantSync {
         $EndDate = try { Get-Date($CurrentItem.lastEndTime) } catch { $Null }
         
         if (($null -ne $CurrentItem.lastStartTime) -and ($StartDate -gt (Get-Date).AddMinutes(-10)) -and ( $Null -eq $CurrentItem.lastEndTime -or ($StartDate -gt $EndDate))) {
-            Throw "NinjaOne Sync for Tenant $($MappedTenant.RowKey) is still running, please wait 10 minutes and try again."
+            Throw "NinjaOne Sync for Tenant $($MappedTenant.RowKey) is still running, please wait 10 minutes and try again. $([string]$(($StartDate).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss.fffZ')))"
         }
 
         # Set Last Start Time
