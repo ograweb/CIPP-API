@@ -457,7 +457,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
         } catch {
             $PolicyReturn = $null
         }
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 460" -Sev 'info'
         Write-Host 'Fetched M365 Device Compliance'
 
         $DeviceComplianceDetails = foreach ($Result in $PolicyReturn) {
@@ -467,11 +467,11 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 DeviceStatuses = $Result.body.value
             }
         }
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 470" -Sev 'info'
         Write-Verbose "$(Get-Date) - Parsing Groups"
         # Fetch Groups
         $AllGroups = Get-GraphBulkResultByID -value -Results $TenantResults -ID 'Groups'
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 474" -Sev 'info'
         # Fetch the App status for each device
         [System.Collections.Generic.List[PSCustomObject]]$GroupRequestArray = @()
         foreach ($Group in $AllGroups) {
@@ -481,13 +481,13 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     url    = "/groups/$($Group.id)/members"
                 })
         }
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 484" -Sev 'info'
         try {
             $GroupMembersReturn = New-GraphBulkRequest -Requests $GroupRequestArray -tenantid $TenantFilter -NoAuthCheck $True
         } catch {
             $GroupMembersReturn = $null
         }
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 490" -Sev 'info'
         Write-Host 'Fetched M365 Group Membership'
 
         $Groups = foreach ($Result in $GroupMembersReturn) {
@@ -497,11 +497,11 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 Members     = $result.body.value
             }
         }
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 500" -Sev 'info'
         Write-Verbose "$(Get-Date) - Parsing Conditional Access Polcies"
         # Fetch and parse conditional access polcies
         $AllConditionalAccessPolcies = Get-GraphBulkResultByID -value -Results $TenantResults -ID 'ConditionalAccess'
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 504" -Sev 'info'
         $ConditionalAccessMembers = foreach ($CAPolicy in $AllConditionalAccessPolcies) {
             #Setup User Array
             [System.Collections.Generic.List[PSCustomObject]]$CAMembers = @()
