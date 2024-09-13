@@ -480,14 +480,17 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     method = 'GET'
                     url    = "/groups/$($Group.id)/members"
                 })
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne GroupRequestArray $($Group.id) " -Sev 'info'
         }
 Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 484" -Sev 'info'
         try {
+            Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 487" -Sev 'info'
             $GroupMembersReturn = New-GraphBulkRequest -Requests $GroupRequestArray -tenantid $TenantFilter -NoAuthCheck $True
         } catch {
+            Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 490" -Sev 'info'
             $GroupMembersReturn = $null
         }
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 490" -Sev 'info'
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 493" -Sev 'info'
         Write-Host 'Fetched M365 Group Membership'
 
         $Groups = foreach ($Result in $GroupMembersReturn) {
@@ -497,7 +500,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 Members     = $result.body.value
             }
         }
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 500" -Sev 'info'
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 503" -Sev 'info'
         Write-Verbose "$(Get-Date) - Parsing Conditional Access Polcies"
         # Fetch and parse conditional access polcies
         $AllConditionalAccessPolcies = Get-GraphBulkResultByID -value -Results $TenantResults -ID 'ConditionalAccess'
