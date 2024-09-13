@@ -355,9 +355,9 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
 
         $MaxSecureScore = $CurrentSecureScore.maxScore
 Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 357 - MaxSecureScore $($MaxSecureScore) " -Sev 'info'
-      if ($MaxSecureScore -eq 0) {
             $MaxSecureScore = 1
-        }
+   Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 359 - MaxSecureScore $($MaxSecureScore) " -Sev 'info'
+          
 
         [System.Collections.Generic.List[PSCustomObject]]$SecureScoreParsed = Foreach ($Score in $CurrentSecureScore.controlScores) {
             $MatchedProfile = $SecureScoreProfiles | Where-Object { $_.id -eq $Score.controlName }
