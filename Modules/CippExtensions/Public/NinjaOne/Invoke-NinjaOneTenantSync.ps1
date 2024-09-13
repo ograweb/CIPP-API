@@ -23,7 +23,7 @@ function Invoke-NinjaOneTenantSync {
         $EndDate = try { Get-Date($CurrentItem.lastEndTime) } catch { $Null }
 
         if (($null -ne $CurrentItem.lastStartTime) -and ($StartDate -gt (Get-Date).AddMinutes(-10)) -and ( $Null -eq $CurrentItem.lastEndTime -or ($StartDate -gt $EndDate))) {
-            # Throw "NinjaOne Sync for Tenant $($MappedTenant.RowKey) is still running, please wait 10 minutes and try again."
+            Throw "NinjaOne Sync for Tenant $($MappedTenant.RowKey) is still running, please wait 10 minutes and try again."
 Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 27" -Sev 'info'
         }
 
@@ -480,17 +480,16 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     method = 'GET'
                     url    = "/groups/$($Group.id)/members"
                 })
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne GroupRequestArray $($Group.id) " -Sev 'info'
         }
 Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 484" -Sev 'info'
         try {
-            Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 487" -Sev 'info'
+            Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 487 - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
             $GroupMembersReturn = New-GraphBulkRequest -Requests $GroupRequestArray -tenantid $TenantFilter -NoAuthCheck $True
         } catch {
-            Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 490" -Sev 'info'
+            Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 490 - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
             $GroupMembersReturn = $null
         }
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 493" -Sev 'info'
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 493 - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
         Write-Host 'Fetched M365 Group Membership'
 
         $Groups = foreach ($Result in $GroupMembersReturn) {
