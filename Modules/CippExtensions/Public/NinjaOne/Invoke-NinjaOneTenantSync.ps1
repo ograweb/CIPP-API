@@ -1194,7 +1194,6 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     'Licenses'            = "$($userLicenses)"
                 }
 
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1195" -Sev 'info'
                 $Microsoft365UserLinksData = @(
                     @{
                         Name = 'Entra ID'
@@ -1418,11 +1417,14 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 }
             } catch {
                 Write-Error "User $($User.UserPrincipalName): A fatal error occured while processing user $_"
+                
+                Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "User $($User.UserPrincipalName): A fatal error occured while processing user $_" -Sev 'info'
             }
 
         }
 
 
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1426" -Sev 'info'
 
         $CreatedUsers = $Null
         $UpdatedUsers = $Null
@@ -1432,6 +1434,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 # Create New Users
                 if (($NinjaUserCreation | Measure-Object).count -ge 1) {
                     Write-Host 'Creating NinjaOne Users'
+                    Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "Creating NinjaOne Users" -Sev 'info'
                     [System.Collections.Generic.List[PSCustomObject]]$CreatedUsers = (Invoke-WebRequest -Uri "https://$($Configuration.Instance)/api/v2/organization/documents" -Method POST -Headers @{Authorization = "Bearer $($token.access_token)" } -ContentType 'application/json; charset=utf-8' -Body ("[$($NinjaUserCreation.body -join ',')]") -EA Stop).content | ConvertFrom-Json -Depth 100
                     Remove-AzDataTableEntity @UsersUpdateTable -Entity $NinjaUserCreation
 
@@ -1527,10 +1530,10 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
 
         ### License Document Details
         if ($Configuration.LicenseDocumentsEnabled -eq $True) {
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1533" -Sev 'info'
             $LicenseDetails = foreach ($License in $Licenses) {
                 $MatchedSubscriptions = $Subscriptions | Where-Object -Property skuid -EQ $License.skuId
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1536" -Sev 'info'
                 try {
                     $FriendlyLicenseName = $((Get-Culture).TextInfo.ToTitleCase((convert-skuname -skuname $License.SkuPartNumber).Tolower()))
                 } catch {
