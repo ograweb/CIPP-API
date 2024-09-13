@@ -23,7 +23,8 @@ function Invoke-NinjaOneTenantSync {
         $EndDate = try { Get-Date($CurrentItem.lastEndTime) } catch { $Null }
 
         if (($null -ne $CurrentItem.lastStartTime) -and ($StartDate -gt (Get-Date).AddMinutes(-10)) -and ( $Null -eq $CurrentItem.lastEndTime -or ($StartDate -gt $EndDate))) {
-            Throw "NinjaOne Sync for Tenant $($MappedTenant.RowKey) is still running, please wait 10 minutes and try again."
+            # Throw "NinjaOne Sync for Tenant $($MappedTenant.RowKey) is still running, please wait 10 minutes and try again."
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 27" -Sev 'info'
         }
 
         # Set Last Start Time
@@ -66,7 +67,7 @@ function Invoke-NinjaOneTenantSync {
         Get-CIPPAzDataTableEntity @CIPPMapping -Filter $Filter | Where-Object { $Null -ne $_.IntegrationId -and $_.IntegrationId -ne '' } | ForEach-Object {
             $MappedFields | Add-Member -NotePropertyName $_.RowKey -NotePropertyValue $($_.IntegrationId)
         }
-
+        Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 70" -Sev 'info'
         # Get NinjaOne Devices
         $Token = Get-NinjaOneToken -configuration $Configuration
         $After = 0
@@ -80,7 +81,7 @@ function Invoke-NinjaOneTenantSync {
         } while ($ResultCount.count -eq $PageSize)
 
         Write-Host 'Fetched NinjaOne Devices'
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 84" -Sev 'info'
         [System.Collections.Generic.List[PSCustomObject]]$NinjaOneUserDocs = @()
 
         if ($Configuration.UserDocumentsEnabled -eq $True) {
@@ -166,7 +167,7 @@ function Invoke-NinjaOneTenantSync {
 
             $NinjaOneUsersTemplate = Invoke-NinjaOneDocumentTemplate -Template $UserDocTemplate -Token $Token
 
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 170" -Sev 'info'
             # Get NinjaOne Users
             [System.Collections.Generic.List[PSCustomObject]]$NinjaOneUserDocs = ((Invoke-WebRequest -Uri "https://$($Configuration.Instance)/api/v2/organization/documents?organizationIds=$($NinjaOneOrg)&templateIds=$($NinjaOneUsersTemplate.id)" -Method GET -Headers @{Authorization = "Bearer $($token.access_token)" } -ContentType 'application/json').content | ConvertFrom-Json -Depth 100)
 
@@ -256,7 +257,7 @@ function Invoke-NinjaOneTenantSync {
             Write-Host 'Fetched NinjaOne License Docs'
         }
 
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 260" -Sev 'info'
         # Create the update objects we will use to update NinjaOne
         $NinjaOrgUpdate = [PSCustomObject]@{}
         [System.Collections.Generic.List[PSCustomObject]]$NinjaLicenseUpdates = @()
@@ -373,7 +374,7 @@ function Invoke-NinjaOneTenantSync {
         }
 
         $TenantDetails = Get-GraphBulkResultByID -value -Results $TenantResults -ID 'TenantDetails'
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 377" -Sev 'info'
         Write-Verbose "$(Get-Date) - Parsing Users"
         # Grab licensed users
         $licensedUsers = $Users | Where-Object { $null -ne $_.AssignedLicenses.SkuId } | Sort-Object UserPrincipalName
@@ -450,7 +451,7 @@ function Invoke-NinjaOneTenantSync {
                     url    = "/deviceManagement/deviceCompliancePolicies/$($CompliancePolicy.id)/deviceStatuses"
                 })
         }
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 454" -Sev 'info'
         try {
             $PolicyReturn = New-GraphBulkRequest -Requests $PolicyRequestArray -tenantid $TenantFilter -NoAuthCheck $True
         } catch {
@@ -504,7 +505,7 @@ function Invoke-NinjaOneTenantSync {
         $ConditionalAccessMembers = foreach ($CAPolicy in $AllConditionalAccessPolcies) {
             #Setup User Array
             [System.Collections.Generic.List[PSCustomObject]]$CAMembers = @()
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 508" -Sev 'info'
             # Check for All Include
             if ($CAPolicy.conditions.users.includeUsers -contains 'All') {
                 $Users | ForEach-Object { $null = $CAMembers.add($_.id) }
@@ -555,7 +556,7 @@ function Invoke-NinjaOneTenantSync {
                 Members     = $CAMembers
             }
         }
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 559" -Sev 'info'
         Write-Verbose "$(Get-Date) - Fetching One Drive Details"
         try {
             $OneDriveDetails = New-GraphGetRequest -uri "https://graph.microsoft.com/beta/reports/getOneDriveUsageAccountDetail(period='D7')" -tenantid $TenantFilter | ConvertFrom-Csv
@@ -636,7 +637,7 @@ function Invoke-NinjaOneTenantSync {
             } else {
                 continue
             }
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 640" -Sev 'info'
             # Match Users
             [System.Collections.Generic.List[String]]$DeviceUsers = @()
             [System.Collections.Generic.List[String]]$DeviceUserIDs = @()
@@ -871,7 +872,7 @@ function Invoke-NinjaOneTenantSync {
                 $Result = Invoke-WebRequest -Uri "https://$($Configuration.Instance)/api/v2/device/$($MatchedNinjaDevice.id)/custom-fields" -Method PATCH -Headers @{Authorization = "Bearer $($token.access_token)" } -ContentType 'application/json; charset=utf-8' -Body ($NinjaDeviceUpdate | ConvertTo-Json -Depth 100)
             }
         }
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 875" -Sev 'info'
         # Enable Device Updates Subscription if needed.
         if ($MappedFields.DeviceCompliance) {
             New-CIPPGraphSubscription -TenantFilter $TenantFilter -TypeofSubscription 'updated' -BaseURL $CIPPUrl -Resource 'devices' -EventType 'DeviceUpdate' -ExecutingUser 'NinjaOneSync'
@@ -1002,7 +1003,7 @@ function Invoke-NinjaOneTenantSync {
                     TotalItemSize            = $TotalItemSize
                 }
 
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1006" -Sev 'info'
                 $UserDevicesDetailsRaw = $ParsedDevices | Where-Object { $User.id -in $_.UserIDS }
 
 
@@ -1102,7 +1103,7 @@ function Invoke-NinjaOneTenantSync {
                     }
                 }
 
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1106" -Sev 'info'
                 $UserMailboxStats = $MailboxStatsFull | Where-Object { $_.'User Principal Name' -eq $User.userPrincipalName } | Select-Object -First 1
                 $UserMailUse = $UserMailboxStats.'Storage Used (Byte)' / 1GB
                 $UserMailTotal = $UserMailboxStats.'Prohibit Send/Receive Quota (Byte)' / 1GB
@@ -1191,7 +1192,7 @@ function Invoke-NinjaOneTenantSync {
                     'Licenses'            = "$($userLicenses)"
                 }
 
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1195" -Sev 'info'
                 $Microsoft365UserLinksData = @(
                     @{
                         Name = 'Entra ID'
@@ -1346,7 +1347,7 @@ function Invoke-NinjaOneTenantSync {
                         Add-CIPPAzDataTableEntity @UsersUpdateTable -Entity $CreateObject -Force
                     }
 
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1350" -Sev 'info'
                     $CreatedUsers = $Null
                     $UpdatedUsers = $Null
 
@@ -1450,7 +1451,7 @@ function Invoke-NinjaOneTenantSync {
 
             ### Relationship Mapping
             # Parse out the NinjaOne ID to MS ID
-
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1454" -Sev 'info'
 
             [System.Collections.Generic.List[PSCustomObject]]$UserDocResults = $UpdatedUsers + $CreatedUsers
 
