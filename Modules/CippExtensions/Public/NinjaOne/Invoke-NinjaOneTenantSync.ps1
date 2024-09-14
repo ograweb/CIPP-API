@@ -481,7 +481,8 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
             $GroupMembersReturn = New-GraphBulkRequest -Requests $GroupRequestArray -tenantid $TenantFilter -NoAuthCheck $True
             Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 482 - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
         } catch {
-            $GroupMembersReturn = $null
+            Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 484 (catch) - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+       $GroupMembersReturn = $null
         }
         Write-Host 'Fetched M365 Group Membership'
 
