@@ -304,7 +304,7 @@ function Invoke-NinjaOneTenantSync {
             @{
                 id     = 'Groups'
                 method = 'GET'
-                url    = '/groups'
+                url    = '/groups?$top=999'
             },
             @{
                 id     = 'ConditionalAccess'
