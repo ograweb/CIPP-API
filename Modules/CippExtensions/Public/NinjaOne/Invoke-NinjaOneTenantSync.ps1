@@ -304,7 +304,7 @@ function Invoke-NinjaOneTenantSync {
             @{
                 id     = 'Groups'
                 method = 'GET'
-                url    = "/groups?$filter=groupTypes/any(c:c+eq+'Unified')"
+                url    = '/groups'
             },
             @{
                 id     = 'ConditionalAccess'
