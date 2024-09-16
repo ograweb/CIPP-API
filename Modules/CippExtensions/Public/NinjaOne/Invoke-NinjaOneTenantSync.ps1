@@ -551,6 +551,8 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
             }
         }
         Write-Verbose "$(Get-Date) - Fetching One Drive Details"
+        Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Fetching One Drive Details - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+
         try {
             $OneDriveDetails = New-GraphGetRequest -uri "https://graph.microsoft.com/beta/reports/getOneDriveUsageAccountDetail(period='D7')" -tenantid $TenantFilter | ConvertFrom-Csv
         } catch {
@@ -559,21 +561,23 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
         }
 
         Write-Verbose "$(Get-Date) - Fetching CAS Mailbox Details"
+       Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Fetching CAS Mailbox Details - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
         try {
             $CASFull = New-GraphGetRequest -uri "https://outlook.office365.com/adminapi/beta/$($tenantfilter)/CasMailbox" -Tenantid $Customer.defaultDomainName -scope ExchangeOnline -noPagination $true
         } catch {
             Write-Error "Failed to fetch CAS Details: $_"
             $CASFull = $null
         }
-
-        Write-Verbose "$(Get-Date) - Fetching Mailbox Details"
+      Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Fetching Mailbox Details - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+         Write-Verbose "$(Get-Date) - Fetching Mailbox Details"
         try {
             $MailboxDetailedFull = New-ExoRequest -TenantID $Customer.defaultDomainName -cmdlet 'Get-Mailbox'
         } catch {
             Write-Error "Failed to fetch Mailbox Details: $_"
             $MailboxDetailedFull = $null
         }
-
+      Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Fetching Blocked Mailbox Details - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+ 
         Write-Verbose "$(Get-Date) - Fetching Blocked Mailbox Details"
         try {
             $BlockedSenders = New-ExoRequest -TenantID $Customer.defaultDomainName -cmdlet 'Get-BlockedSenderAddress'
@@ -594,7 +598,8 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
 
 
         $FetchEnd = Get-Date
-
+      Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Fetching End - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+ 
         ############################ Format and Synchronize to NinjaOne ############################
         $DeviceTable = Get-CippTable -tablename 'CacheNinjaOneParsedDevices'
         $DeviceMapTable = Get-CippTable -tablename 'NinjaOneDeviceMap'
