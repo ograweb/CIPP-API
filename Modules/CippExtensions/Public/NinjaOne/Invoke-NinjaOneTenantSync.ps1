@@ -613,6 +613,8 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
             [System.Collections.Generic.List[PSCustomObject]]$DeviceMap = @()
         }
 
+  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Parse Devices - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+ 
         # Parse Devices
         Foreach ($Device in $Devices | Where-Object { $_.id -notin $ParsedDevices.id }) {
 
@@ -864,6 +866,9 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 $Result = Invoke-WebRequest -Uri "https://$($Configuration.Instance)/api/v2/device/$($MatchedNinjaDevice.id)/custom-fields" -Method PATCH -Headers @{Authorization = "Bearer $($token.access_token)" } -ContentType 'application/json; charset=utf-8' -Body ($NinjaDeviceUpdate | ConvertTo-Json -Depth 100)
             }
         }
+
+  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Parse Devices FIN - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+ 
         # Enable Device Updates Subscription if needed.
         if ($MappedFields.DeviceCompliance) {
             New-CIPPGraphSubscription -TenantFilter $TenantFilter -TypeofSubscription 'updated' -BaseURL $CIPPUrl -Resource 'devices' -EventType 'DeviceUpdate' -ExecutingUser 'NinjaOneSync'
@@ -912,7 +917,8 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
             [System.Collections.Generic.List[PSCustomObject]]$NinjaUserCreation = @()
         }
 
-
+  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne foreach User - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+ 
         foreach ($user in $SyncUsers | Where-Object { $_.id -notin $ParsedUsers.RowKey }) {
             try {
 
@@ -1180,6 +1186,8 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     'Aliases'             = "$aliases"
                     'Licenses'            = "$($userLicenses)"
                 }
+    Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne User $($User.displayName) - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+ 
 
                 $Microsoft365UserLinksData = @(
                     @{
@@ -1410,7 +1418,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
         }
 
 
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1426" -Sev 'info'
+Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1421" -Sev 'info'
 
         $CreatedUsers = $Null
         $UpdatedUsers = $Null
