@@ -878,7 +878,8 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
         if ($MappedFields.DeviceCompliance) {
             New-CIPPGraphSubscription -TenantFilter $TenantFilter -TypeofSubscription 'updated' -BaseURL $CIPPUrl -Resource 'devices' -EventType 'DeviceUpdate' -ExecutingUser 'NinjaOneSync'
         }
-
+  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Processed Devices - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+ 
         Write-Host 'Processed Devices'
 
 
@@ -890,11 +891,13 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
             $SyncUsers = $Users
         }
 
+  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne CacheNinjaOneParsedUsers - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
 
         $UsersTable = Get-CippTable -tablename 'CacheNinjaOneParsedUsers'
         $UsersUpdateTable = Get-CippTable -tablename 'CacheNinjaOneUsersUpdate'
         $UsersMapTable = Get-CippTable -tablename 'NinjaOneUserMap'
 
+  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne PartitionKey - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
 
         $UsersFilter = "PartitionKey eq '$($Customer.CustomerId)'"
         [System.Collections.Generic.List[PSCustomObject]]$ParsedUsers = Get-CIPPAzDataTableEntity @UsersTable -Filter $UsersFilter
