@@ -476,7 +476,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     url    = "/groups/$($Group.id)/members"
                 })
         }
-        GroupRequestArray = $GroupRequestArray | Select-Object -First 500
+        $GroupRequestArray = $GroupRequestArray | Select-Object -First 500
        try {
             Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 480 Count GroupRequestArray $($GroupRequestArray.Count) - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
             $GroupMembersReturn = New-GraphBulkRequest -Requests $GroupRequestArray -tenantid $TenantFilter -NoAuthCheck $True
