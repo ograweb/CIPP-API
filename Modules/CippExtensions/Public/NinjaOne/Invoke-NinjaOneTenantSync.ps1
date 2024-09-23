@@ -66,7 +66,7 @@ function Invoke-NinjaOneTenantSync {
         Get-CIPPAzDataTableEntity @CIPPMapping -Filter $Filter | Where-Object { $Null -ne $_.IntegrationId -and $_.IntegrationId -ne '' } | ForEach-Object {
             $MappedFields | Add-Member -NotePropertyName $_.RowKey -NotePropertyValue $($_.IntegrationId)
         }
-        Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 70" -Sev 'info'
+
         # Get NinjaOne Devices
         $Token = Get-NinjaOneToken -configuration $Configuration
         $After = 0
@@ -80,6 +80,7 @@ function Invoke-NinjaOneTenantSync {
         } while ($ResultCount.count -eq $PageSize)
 
         Write-Host 'Fetched NinjaOne Devices'
+
         [System.Collections.Generic.List[PSCustomObject]]$NinjaOneUserDocs = @()
 
         if ($Configuration.UserDocumentsEnabled -eq $True) {
@@ -164,6 +165,7 @@ function Invoke-NinjaOneTenantSync {
             }
 
             $NinjaOneUsersTemplate = Invoke-NinjaOneDocumentTemplate -Template $UserDocTemplate -Token $Token
+
 
             # Get NinjaOne Users
             [System.Collections.Generic.List[PSCustomObject]]$NinjaOneUserDocs = ((Invoke-WebRequest -Uri "https://$($Configuration.Instance)/api/v2/organization/documents?organizationIds=$($NinjaOneOrg)&templateIds=$($NinjaOneUsersTemplate.id)" -Method GET -Headers @{Authorization = "Bearer $($token.access_token)" } -ContentType 'application/json').content | ConvertFrom-Json -Depth 100)
@@ -253,6 +255,7 @@ function Invoke-NinjaOneTenantSync {
 
             Write-Host 'Fetched NinjaOne License Docs'
         }
+
 
         # Create the update objects we will use to update NinjaOne
         $NinjaOrgUpdate = [PSCustomObject]@{}
@@ -350,10 +353,6 @@ function Invoke-NinjaOneTenantSync {
         $MaxSecureScoreRank = ($SecureScoreProfiles.rank | Measure-Object -Maximum).maximum
 
         $MaxSecureScore = $CurrentSecureScore.maxScore
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 357 - MaxSecureScore $($MaxSecureScore) " -Sev 'info'
-        #  $MaxSecureScore = 1
-   Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 359 - MaxSecureScore $($MaxSecureScore) " -Sev 'info'
-          
 
         [System.Collections.Generic.List[PSCustomObject]]$SecureScoreParsed = Foreach ($Score in $CurrentSecureScore.controlScores) {
             $MatchedProfile = $SecureScoreProfiles | Where-Object { $_.id -eq $Score.controlName }
@@ -374,6 +373,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
         }
 
         $TenantDetails = Get-GraphBulkResultByID -value -Results $TenantResults -ID 'TenantDetails'
+
         Write-Verbose "$(Get-Date) - Parsing Users"
         # Grab licensed users
         $licensedUsers = $Users | Where-Object { $null -ne $_.AssignedLicenses.SkuId } | Sort-Object UserPrincipalName
@@ -450,11 +450,13 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     url    = "/deviceManagement/deviceCompliancePolicies/$($CompliancePolicy.id)/deviceStatuses"
                 })
         }
+
         try {
             $PolicyReturn = New-GraphBulkRequest -Requests $PolicyRequestArray -tenantid $TenantFilter -NoAuthCheck $True
         } catch {
             $PolicyReturn = $null
         }
+
         Write-Host 'Fetched M365 Device Compliance'
 
         $DeviceComplianceDetails = foreach ($Result in $PolicyReturn) {
@@ -464,9 +466,11 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 DeviceStatuses = $Result.body.value
             }
         }
+
         Write-Verbose "$(Get-Date) - Parsing Groups"
         # Fetch Groups
         $AllGroups = Get-GraphBulkResultByID -value -Results $TenantResults -ID 'Groups'
+
         # Fetch the App status for each device
         [System.Collections.Generic.List[PSCustomObject]]$GroupRequestArray = @()
         foreach ($Group in $AllGroups) {
@@ -476,16 +480,14 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     url    = "/groups/$($Group.id)/members"
                 })
         }
-        
-       try {
-       $GroupRequestArray = $GroupRequestArray | Select-Object -First 400
-            Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 480 Count GroupRequestArray $($GroupRequestArray.Count) - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
+
+        try {
+            $GroupRequestArray = $GroupRequestArray | Select-Object -First 400
             $GroupMembersReturn = New-GraphBulkRequest -Requests $GroupRequestArray -tenantid $TenantFilter -NoAuthCheck $True
-            Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 482 - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
         } catch {
-            Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 484 (catch) - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
-       $GroupMembersReturn = $null
+            $GroupMembersReturn = $null
         }
+
         Write-Host 'Fetched M365 Group Membership'
 
         $Groups = foreach ($Result in $GroupMembersReturn) {
@@ -495,12 +497,15 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 Members     = $result.body.value
             }
         }
+
         Write-Verbose "$(Get-Date) - Parsing Conditional Access Polcies"
         # Fetch and parse conditional access polcies
         $AllConditionalAccessPolcies = Get-GraphBulkResultByID -value -Results $TenantResults -ID 'ConditionalAccess'
+
         $ConditionalAccessMembers = foreach ($CAPolicy in $AllConditionalAccessPolcies) {
             #Setup User Array
             [System.Collections.Generic.List[PSCustomObject]]$CAMembers = @()
+
             # Check for All Include
             if ($CAPolicy.conditions.users.includeUsers -contains 'All') {
                 $Users | ForEach-Object { $null = $CAMembers.add($_.id) }
@@ -551,9 +556,8 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 Members     = $CAMembers
             }
         }
-        Write-Verbose "$(Get-Date) - Fetching One Drive Details"
-        Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Fetching One Drive Details - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
 
+        Write-Verbose "$(Get-Date) - Fetching One Drive Details"
         try {
             $OneDriveDetails = New-GraphGetRequest -uri "https://graph.microsoft.com/beta/reports/getOneDriveUsageAccountDetail(period='D7')" -tenantid $TenantFilter | ConvertFrom-Csv
         } catch {
@@ -562,23 +566,21 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
         }
 
         Write-Verbose "$(Get-Date) - Fetching CAS Mailbox Details"
-       Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Fetching CAS Mailbox Details - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
         try {
             $CASFull = New-GraphGetRequest -uri "https://outlook.office365.com/adminapi/beta/$($tenantfilter)/CasMailbox" -Tenantid $Customer.defaultDomainName -scope ExchangeOnline -noPagination $true
         } catch {
             Write-Error "Failed to fetch CAS Details: $_"
             $CASFull = $null
         }
-      Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Fetching Mailbox Details - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
-         Write-Verbose "$(Get-Date) - Fetching Mailbox Details"
+
+        Write-Verbose "$(Get-Date) - Fetching Mailbox Details"
         try {
             $MailboxDetailedFull = New-ExoRequest -TenantID $Customer.defaultDomainName -cmdlet 'Get-Mailbox'
         } catch {
             Write-Error "Failed to fetch Mailbox Details: $_"
             $MailboxDetailedFull = $null
         }
-      Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Fetching Blocked Mailbox Details - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
- 
+
         Write-Verbose "$(Get-Date) - Fetching Blocked Mailbox Details"
         try {
             $BlockedSenders = New-ExoRequest -TenantID $Customer.defaultDomainName -cmdlet 'Get-BlockedSenderAddress'
@@ -599,8 +601,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
 
 
         $FetchEnd = Get-Date
-      Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Fetching End - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
- 
+
         ############################ Format and Synchronize to NinjaOne ############################
         $DeviceTable = Get-CippTable -tablename 'CacheNinjaOneParsedDevices'
         $DeviceMapTable = Get-CippTable -tablename 'NinjaOneDeviceMap'
@@ -619,8 +620,6 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
             [System.Collections.Generic.List[PSCustomObject]]$DeviceMap = @()
         }
 
-  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Parse Devices - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
- 
         # Parse Devices
         Foreach ($Device in $Devices | Where-Object { $_.id -notin $ParsedDevices.id }) {
 
@@ -638,6 +637,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
             } else {
                 continue
             }
+
             # Match Users
             [System.Collections.Generic.List[String]]$DeviceUsers = @()
             [System.Collections.Generic.List[String]]$DeviceUserIDs = @()
@@ -873,14 +873,11 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
             }
         }
 
-  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Parse Devices FIN - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
- 
         # Enable Device Updates Subscription if needed.
         if ($MappedFields.DeviceCompliance) {
             New-CIPPGraphSubscription -TenantFilter $TenantFilter -TypeofSubscription 'updated' -BaseURL $CIPPUrl -Resource 'devices' -EventType 'DeviceUpdate' -ExecutingUser 'NinjaOneSync'
         }
-  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne Processed Devices - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
- 
+
         Write-Host 'Processed Devices'
 
 
@@ -892,13 +889,11 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
             $SyncUsers = $Users
         }
 
-  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne CacheNinjaOneParsedUsers - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
 
         $UsersTable = Get-CippTable -tablename 'CacheNinjaOneParsedUsers'
         $UsersUpdateTable = Get-CippTable -tablename 'CacheNinjaOneUsersUpdate'
         $UsersMapTable = Get-CippTable -tablename 'NinjaOneUserMap'
 
-  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne PartitionKey - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
 
         $UsersFilter = "PartitionKey eq '$($Customer.CustomerId)'"
         [System.Collections.Generic.List[PSCustomObject]]$ParsedUsers = Get-CIPPAzDataTableEntity @UsersTable -Filter $UsersFilter
@@ -926,8 +921,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
             [System.Collections.Generic.List[PSCustomObject]]$NinjaUserCreation = @()
         }
 
-  Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne foreach User - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
- 
+
         foreach ($user in $SyncUsers | Where-Object { $_.id -notin $ParsedUsers.RowKey }) {
             try {
 
@@ -1008,6 +1002,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     ItemCount                = [math]::Round($StatsRequest.'Item Count', 2)
                     TotalItemSize            = $TotalItemSize
                 }
+
 
                 $UserDevicesDetailsRaw = $ParsedDevices | Where-Object { $User.id -in $_.UserIDS }
 
@@ -1108,6 +1103,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     }
                 }
 
+
                 $UserMailboxStats = $MailboxStatsFull | Where-Object { $_.'User Principal Name' -eq $User.userPrincipalName } | Select-Object -First 1
                 $UserMailUse = $UserMailboxStats.'Storage Used (Byte)' / 1GB
                 $UserMailTotal = $UserMailboxStats.'Prohibit Send/Receive Quota (Byte)' / 1GB
@@ -1195,8 +1191,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                     'Aliases'             = "$aliases"
                     'Licenses'            = "$($userLicenses)"
                 }
-    Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne User $($User.displayName) - Total processing time $((New-TimeSpan -Start $StartTime -End (Get-Date)).TotalSeconds) seconds" -Sev 'info'
- 
+
 
                 $Microsoft365UserLinksData = @(
                     @{
@@ -1352,6 +1347,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                         Add-CIPPAzDataTableEntity @UsersUpdateTable -Entity $CreateObject -Force
                     }
 
+
                     $CreatedUsers = $Null
                     $UpdatedUsers = $Null
 
@@ -1420,14 +1416,11 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 }
             } catch {
                 Write-Error "User $($User.UserPrincipalName): A fatal error occured while processing user $_"
-                
-                Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "User $($User.UserPrincipalName): A fatal error occured while processing user $_" -Sev 'info'
             }
 
         }
 
 
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1421" -Sev 'info'
 
         $CreatedUsers = $Null
         $UpdatedUsers = $Null
@@ -1437,7 +1430,6 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
                 # Create New Users
                 if (($NinjaUserCreation | Measure-Object).count -ge 1) {
                     Write-Host 'Creating NinjaOne Users'
-                    Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "Creating NinjaOne Users" -Sev 'info'
                     [System.Collections.Generic.List[PSCustomObject]]$CreatedUsers = (Invoke-WebRequest -Uri "https://$($Configuration.Instance)/api/v2/organization/documents" -Method POST -Headers @{Authorization = "Bearer $($token.access_token)" } -ContentType 'application/json; charset=utf-8' -Body ("[$($NinjaUserCreation.body -join ',')]") -EA Stop).content | ConvertFrom-Json -Depth 100
                     Remove-AzDataTableEntity @UsersUpdateTable -Entity $NinjaUserCreation
 
@@ -1459,7 +1451,7 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
 
             ### Relationship Mapping
             # Parse out the NinjaOne ID to MS ID
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1454" -Sev 'info'
+
 
             [System.Collections.Generic.List[PSCustomObject]]$UserDocResults = $UpdatedUsers + $CreatedUsers
 
@@ -1533,10 +1525,10 @@ Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne lin
 
         ### License Document Details
         if ($Configuration.LicenseDocumentsEnabled -eq $True) {
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1533" -Sev 'info'
+
             $LicenseDetails = foreach ($License in $Licenses) {
                 $MatchedSubscriptions = $Subscriptions | Where-Object -Property skuid -EQ $License.skuId
-Write-LogMessage -API 'NinjaOneSync' -user 'NinjaOneSync' -message "NinjaOne line 1536" -Sev 'info'
+
                 try {
                     $FriendlyLicenseName = $((Get-Culture).TextInfo.ToTitleCase((convert-skuname -skuname $License.SkuPartNumber).Tolower()))
                 } catch {
