@@ -1749,7 +1749,7 @@ function Invoke-NinjaOneTenantSync {
                 },
                 @{
                     Name = 'Compliance Portal'
-                    Link = "https://compliance.microsoft.com/?tid=$($Customer.CustomerId)"
+                    Link = "https://purview.microsoft.com/?tid=$($Customer.CustomerId)"
                     Icon = 'fas fa-user-shield'
                 },
                 @{
