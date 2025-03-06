@@ -494,7 +494,6 @@ function Invoke-NinjaOneTenantSync {
         }
 
         try {
-            $GroupRequestArray = $GroupRequestArray | Select-Object -First 400
             $GroupMembersReturn = New-GraphBulkRequest -Requests $GroupRequestArray -tenantid $TenantFilter -NoAuthCheck $True
         } catch {
             $GroupMembersReturn = $null
